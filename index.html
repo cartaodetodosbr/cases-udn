@@ -477,10 +477,10 @@ document.getElementById('btnPreencherCase').addEventListener('click', ()=>{ rend
    sempre grava StatusCase="Pendente" (regra do novo portal). */
 const CASE_DRAFT = {};
 const CAMPOS_COM_MINIMO = [
-  ['case_situacao_motivo', 150, 'Qual situação motivou a iniciativa?'],
+  ['case_situacao_motivo', 100, 'Qual situação motivou a iniciativa?'],
   ['case_situacao_impacto', 100, 'Como essa situação impactava a operação?'],
-  ['case_como_implementado', 200, 'Como a iniciativa foi implementada?'],
-  ['case_beneficios_obtidos', 150, 'Principais benefícios obtidos'],
+  ['case_como_implementado', 100, 'Como a iniciativa foi implementada?'],
+  ['case_beneficios_obtidos', 100, 'Principais benefícios obtidos'],
 ];
 
 function campoTextarea(campo, label, obrigatorioMin, placeholder){
@@ -498,7 +498,7 @@ function renderCaseForm(){
   document.getElementById('caseErrors').innerHTML = '';
   document.getElementById('caseFormView').innerHTML = `
     <p class="hint">${htmlEsc(item.nome)}</p>
-    ${campoTextarea('case_situacao_motivo','Qual situação motivou a iniciativa?',150,'Descreva o contexto/problema que motivou a iniciativa...')}
+    ${campoTextarea('case_situacao_motivo','Qual situação motivou a iniciativa?',100,'Descreva o contexto/problema que motivou a iniciativa...')}
     ${campoTextarea('case_situacao_impacto','Como essa situação impactava a operação?',100,'Descreva o impacto na operação antes da iniciativa...')}
     <div class="field">
       <label>Requer investimentos?</label>
@@ -511,10 +511,10 @@ function renderCaseForm(){
       <label for="fld_case_investimentos_desc">Quais investimentos são necessários?</label>
       <textarea id="fld_case_investimentos_desc" placeholder="Descreva os investimentos necessários...">${htmlEsc(escEditable(CASE_DRAFT.case_investimentos_desc))}</textarea>
     </div>
-    ${campoTextarea('case_como_implementado','Como a iniciativa foi implementada?',200,'Descreva como a iniciativa foi implementada...')}
+    ${campoTextarea('case_como_implementado','Como a iniciativa foi implementada?',100,'Descreva como a iniciativa foi implementada...')}
     ${campoTextarea('case_ferramentas_utilizadas','Ferramentas utilizadas',0,'Liste as ferramentas utilizadas...')}
     ${campoTextarea('case_areas_envolvidas','Áreas envolvidas',0,'Liste as áreas envolvidas...')}
-    ${campoTextarea('case_beneficios_obtidos','Principais benefícios obtidos',150,'Descreva os benefícios obtidos...')}
+    ${campoTextarea('case_beneficios_obtidos','Principais benefícios obtidos',100,'Descreva os benefícios obtidos...')}
     ${campoTextarea('case_resultados_mensuraveis','Resultados mensuráveis',0,'Números, indicadores, percentuais (se houver)...')}
     ${campoTextarea('case_cuidados_recomendados','Quais cuidados outra UDN deve ter ao replicar?',0,'Descreva os cuidados recomendados...')}
     ${campoTextarea('case_pre_requisito','Existe algum pré-requisito importante?',0,'Descreva pré-requisitos, se houver...')}
@@ -614,6 +614,12 @@ document.getElementById('btnEnviarCase').addEventListener('click', async ()=>{
       `<div class="error-banner">Não foi possível enviar agora. Nada foi registrado ainda — tente novamente.</div>`);
     return;
   }
+  // Remove a iniciativa da lista local assim que o Case é enviado com sucesso — sem
+  // isso, RAW_DATA (carregado uma única vez no início) continua com a iniciativa como
+  // se o Case ainda não tivesse sido preenchido, e ela reaparece na lista ao voltar.
+  // Mantém a regra já existente (elegivelParaEsteFormPortal: só aparecem iniciativas
+  // sem Case) verdadeira também depois de um envio, sem precisar recarregar a página.
+  RAW_DATA = RAW_DATA.filter(d => d.id !== AppState.iniciativaId);
   btn.disabled = false; btn.textContent = 'Enviar para Curadoria';
   document.getElementById('successOverlay').classList.add('open');
 });
